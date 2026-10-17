@@ -1,0 +1,56 @@
+[size=5][b]ControlSally: pilot Sahelanthropus in free roam[/b][/size]
+
+Take control of the real Sahelanthropus (ST-84) in Afghanistan and Africa free roam. Walk it where you want, jump on command, and fire its own weapons: sword, gatling, flamethrower, missiles, grenades and stomp. It uses the game's own animations, sounds and weapon code.
+
+[color=#e0a000][b]Early, experimental release.[/b] Steering, jumps and weapons work. Weapons do not damage soldiers yet (vehicles and props break). Offline single player only.[/color]
+
+[size=4][b]Features[/b][/size]
+[list]
+[*]Spawns Sahelanthropus in Afghanistan (Episode 31 battlefield) or Africa (Nova Braga Airport) free roam
+[*]No Episode 31 arena boundary: roam the whole map
+[*]Direct camera-relative steering, hold position, hand control back to the AI and take it again
+[*]Jumps only when you ask for them
+[*]7 weapon slots on the keyboard, aimed where your camera looks
+[*]It won't target Snake (except the flamethrower at very close range, see Known issues)
+[*]Opening sequence skipped, combat phase locked
+[*]Eye lamp colours, including a rainbow mode
+[*]In-game [b]ControlSally menu[/b] (Infinite Heaven / IHHook overlay): spawn, teleport to it, summon it to you or to a map marker, pick its spawn point, change settings live
+[/list]
+
+[size=4][b]Requirements[/b][/size]
+[list]
+[*]MGSV:TPP [b]1.0.15.4, Steam, English[/b] (other versions will not work)
+[*][url=https://www.nexusmods.com/metalgearsolidvtpp/mods/106]SnakeBite[/url] 0.9.2.5
+[*][url=https://www.nexusmods.com/metalgearsolidvtpp/mods/45]Infinite Heaven[/url] r267
+[*][url=https://www.nexusmods.com/metalgearsolidvtpp/mods/1226]IHHook[/url] r25
+[*][url=https://www.python.org]Python[/url] 3.10+ (runs the keyboard driver)
+[*]Optional: [url=https://www.nexusmods.com/metalgearsolidvtpp/mods/2486]V_Framework[/url] 1.6.0.1 (tested alongside)
+[/list]
+
+[size=4][b]Install[/b][/size]
+[list=1]
+[*]Install SnakeBite, Infinite Heaven and IHHook.
+[*]Install [b]ControlSally.mgsv[/b] with SnakeBite.
+[*]Copy [b]plugins\SahelanControl.dll[/b] and [b]plugins\SahelanControl_gate.txt[/b] into [i]MGS_TPP\plugins\[/i].
+[*]In free roam: IH menu > ControlSally > [i]Set up boss events[/i] (once), restart free roam, then [i]Spawn Sahelanthropus[/i].
+[*]Run [b]python sally_pilot.py[/b] from the driver folder to steer.
+[/list]
+
+[size=4][b]Controls[/b][/size]
+Numpad 8/2/4/6 move (camera-relative), 5 hold, 0 release, + jump. Numpad 7 sword, 9 gatling, 1 flamethrower, . missiles, 3 grenades, − stomp, PageUp sword 2. Numpad / eye colours. Ctrl+Shift+End panic.
+
+[size=4][b]Known issues[/b][/size]
+[list]
+[*][b]Dying, reloading or changing mission while Sahelanthropus is loaded can freeze the loading screen.[/b] Save first and quit the game instead of reloading.
+[*]Weapons don't damage soldiers yet: the game treats the mech as their ally. Fix in progress.
+[*]At close range the flamethrower can turn toward Snake.
+[*]Steering ignores the navmesh: it can walk into cliffs and buildings.
+[*]Do not use online / FOB.
+[/list]
+
+[size=4][b]How it works[/b][/size]
+An IHHook plugin DLL hooks the running game in memory (MinHook). No game executable or file on disk is modified. An Infinite Heaven module adds Sahelanthropus as a free-roam boss event. Full technical write-up (why it was hard and how it was done): docs/HOW_IT_WORKS.md on GitHub.
+
+[size=4][b]Source & credits[/b][/size]
+Open source (MIT): [url=https://github.com/WannabeCoderLuc/ControlSally]github.com/WannabeCoderLuc/ControlSally[/url]
+Thanks to TinManTex (Infinite Heaven, IHHook), caplag (IH fork), Yazed0071 (V_Framework), Tsuda Kageyu (MinHook) and the MGSV modding wiki.

@@ -1,0 +1,31 @@
+# build output
+src/SahelanControl/bin/
+src/SahelanControl/obj/
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.obj
+*.dll
+.vs/
+
+# release packages (attach to GitHub releases / Nexus, don't commit)
+release/
+*.mgsv
+*.zip
+*.7z
+
+# never commit game files or extracted data
+*.exe
+*.dat
+*.fpk
+*.fpkd
+*.fox2
+*.ftex
+*.ftexs
+
+# runtime output
+driver/runs/
+*.log
+__pycache__/
+*.pyc

@@ -1,0 +1,1 @@
+autoarm=1 gate=23 types=0x404C010 navworld=1 skipopening=0 introskip=1 killoverride=1 idlehold=0 diverttarget=1 forcedphase=3 eyepreset=blue
