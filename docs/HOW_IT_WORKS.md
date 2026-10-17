@@ -20,7 +20,7 @@ Status tags: **done** = works in game, **in progress** = researched but not fini
 | Part | Job |
 |---|---|
 | `ControlSally.mgsv` (spawn package) | A script block with the Sahelanthropus GameObject, its parameters, motions, sound and a locator, built from Episode 31's data. |
-| `InfBossTppSahelan2.lua` | Adds Sahelanthropus as an Infinite Heaven boss-event type, so IH can load the block in free roam and make it appear. |
+| `InfBossTppSahelan2.lua` | Adds Sahelanthropus to free roam: loads its packs with the mission and makes it appear (built on IH's boss-event module). |
 | `InfControlSally.lua` | The in-game ControlSally menu: spawn, teleport, summon, settings. |
 | `SahelanControl.dll` | Loaded by IHHook. Hooks the mech's AI, movement, weapons and targeting in memory, and registers the `SahelanControl` Lua library. |
 | `sally_pilot.py` | Reads the keyboard and sends goals, jumps and fire commands to the DLL through IHHook's named pipe. |
@@ -47,7 +47,8 @@ by the DLL.
    function boundaries and calling conventions, plus coexistence with other hook mods (V_Framework hooks some of the
    same functions).
 8. **Engine traps.** Fox Lua numbers are 32-bit floats, so pointers can't round-trip through Lua. IHHook's pipe takes
-   512-byte messages. The Sahelanthropus script block never finishes unloading (section 9).
+   512-byte messages. Loaded the way IH loads bosses (a streamed script block), Sahelanthropus never unloads and
+   freezes the next loading screen (section 9).
 
 ## 3. How it was researched
 - **Static analysis** of a read-only copy of the exe: headless Ghidra with a project-wide symbol map, plus a fast
@@ -123,11 +124,22 @@ hooks the same function, so ControlSally chains after V_Framework's jump instead
   (`0x140D2DCAD`) drops hits between members of the same army. The fix being tested bypasses it for the mech's bullets
   only, and changes its offense side to the player's.
 
-## 9. Known engine problem: the block never unloads (open)
-Once `TppSahelan2_block` is loaded, it never reaches the EMPTIED state when it is unloaded. Any checkpoint reload,
-death, mission change or despawn while it is loaded leaves the next loading screen waiting forever. The Africa pack
-(no navmesh, routes or tactical points) hangs too, so the remaining suspects are the sound bank, the motion graph and
-the GameObject itself. Until this is fixed: save before playing, and restart the game instead of reloading.
+## 9. The reload hang and the mission-pack fix (done)
+**Problem.** IH loads boss types in a script block that it streams in and out during play. Once the Sahelanthropus
+block (`TppSahelan2_block`) had been loaded, unloading it never reached the EMPTIED state. Every death, checkpoint
+reload, mission change or despawn then left the next loading screen waiting forever.
+
+**Finding the cause.** A small script loads the block over the pipe with a chosen pack list, unloads it and polls
+its state. The vanilla Sahelanthropus parts pack empties normally, and so does IH's boss-gauge pack. The game-object
+pack (GameObject, parameters, motions, sound) is the part that never empties. Vanilla never does this either:
+Episode 12 swaps whole mission area packs with a full load, and Episodes 31 and 50 load the mech with the mission.
+Infinite Heaven itself keeps zombie soldiers' packs in the mission packs for a similar reason.
+
+**Fix.** ControlSally's default load mode (`MISSION_PACK`) adds the Sahelanthropus packs to free roam's mission pack
+list, so the mech loads and unloads with the mission, like in Episode 31. It waits parked at its spawn point until
+you spawn it. "Spawn" wakes it (stage, health, settings) and "Despawn" stops it. Nothing is streamed mid-mission any
+more. Verified: death, then Continue from checkpoint, reloads normally, and Respawn works. The old block mode is still
+selectable (`SCRIPT_BLOCK`) for testing.
 
 ## 10. Talking to the DLL
 - The DLL hooks the game's Lua library setup (`SetLuaFunctions`) to register a `SahelanControl` library, so both IH

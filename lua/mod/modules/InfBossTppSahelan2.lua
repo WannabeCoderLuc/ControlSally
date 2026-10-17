@@ -194,7 +194,8 @@ local function MakeMessages()
   if not InfBossEvent or not InfBossEvent.BossEventEnabled() then
     return
   end
-  if not this.IsEnabled() or not this.SupportsMission(vars.missionCode) then
+  local packModeOn=this.PackMode() and this.missionPackSub~=nil
+  if (not packModeOn and not this.IsEnabled()) or not this.SupportsMission(vars.missionCode) then
     return
   end
   this.messageExecTable=Tpp.MakeMessageExecTable(this.Messages())
@@ -218,8 +219,45 @@ function this.OnModuleLoad(prevModule)
 end
 
 --called by InfBossEvent.AddMissionPacks (only while registered, i.e. supported missions)
+--load mode (ivar loadMode): MISSION_PACK (default) adds the sub type's packs to the free-roam mission packs, so the
+--mech loads and unloads with the mission like in Episode 31. SCRIPT_BLOCK is the old IH boss-event block, which
+--never reaches EMPTIED once loaded (every death/reload/despawn then hangs the next load; OptionB findings).
+function this.PackMode()
+  local ivar=this.ivarNames.loadMode and Ivars[this.ivarNames.loadMode]
+  return ivar==nil or ivar:Is(0)
+end
+
+function this.MissionPackSubType(missionCode)
+  for i,name in ipairs(this.names)do
+    local info=this.infos[name]
+    local ivarName=this.enableSubTypeIvarNames[name]
+    local on=ivarName==nil or Ivars[ivarName]==nil or Ivars[ivarName]:Is(1)
+    if on and info and info.missions and info.missions[missionCode] then
+      return name
+    end
+  end
+  return nil
+end
+
 function this.AddPacks(missionCode,packPaths)
+  this.missionPackSub=nil
   if not this.SupportsMission(missionCode) then
+    return
+  end
+  if this.PackMode() then
+    if not Ivars[this.ivarNames.enable]:Is(1) then
+      return
+    end
+    local sub=this.MissionPackSubType(missionCode)
+    if not sub then
+      Log("mission-pack mode: no enabled sub type for mission "..tostring(missionCode))
+      return
+    end
+    for i,packPath in ipairs(this.infos[sub].packages)do
+      packPaths[#packPaths+1]=packPath
+    end
+    this.missionPackSub=sub
+    Log("mission-pack mode: "..sub.." loads with the mission")
     return
   end
   packPaths[#packPaths+1]=this.packages.scriptBlockData
@@ -261,8 +299,8 @@ end
 
 --OUT: {[subType]=1 or 0}, InfBossEvent keeps the 1s
 function this.GetEnabledSubTypes(missionCode)
-  if not this.SupportsMission(missionCode) then
-    return {}
+  if not this.SupportsMission(missionCode) or this.PackMode() then
+    return {}--mission-pack mode: IH's boss event never picks or streams this type, StartEventNow spawns it
   end
   local enabled=IvarProc.GetIvarKeyNameValues(this.enableSubTypeIvarNames)
   for subType,value in pairs(enabled)do
@@ -401,6 +439,13 @@ function this.ForceUnloadBlock()
     pcall(SendCommand,this.sahelanId,{id="ResetParasiteEffect"})
   end
   this.DisableAll()
+  if this.PackMode() then
+    --mission-pack mode: nothing to unload, the mission load/unload owns the packs
+    if WeatherManager and WeatherManager.RequestTag then
+      pcall(WeatherManager.RequestTag,"Clear",7)
+    end
+    return
+  end
   this.sahelanId=NULL_ID
   local blockId=ScriptBlock.GetScriptBlockId(this.blockName)
   if blockId and blockId~=ScriptBlock.SCRIPT_BLOCK_ID_INVALID then
@@ -588,6 +633,24 @@ function this.WarpToBattlefield()
 end
 
 function this.StartEventNow()
+  if this.PackMode() then
+    local sub=this.missionPackSub
+    if not sub then
+      Log("Sahelanthropus is not loaded in this mission: enable it (and free-roam boss events), then reload the mission",true)
+      return
+    end
+    this.SetBossSubType(sub,1)
+    this.InitBoss()
+    if this.sahelanId==nil or this.sahelanId==NULL_ID then
+      Log("Sahelanthropus GameObject not found (pack missing?)",true)
+      return
+    end
+    this.ClearStates()
+    local playerPos={vars.playerPosX,vars.playerPosY,vars.playerPosZ}
+    this.Appear(playerPos,nil,playerPos,0)
+    InfMenu.MenuOff()
+    return
+  end
   if not InfBossEvent.BossEventEnabled() then
     Log("Enable boss events for free roam first (Boss event menu)",true)
     return
@@ -643,6 +706,12 @@ AddIvar("manualOnly",{
   settingNames="set_switch",
 })
 
+AddIvar("loadMode",{
+  save=IvarProc.CATEGORY_EXTERNAL,
+  default=0,
+  settings={"MISSION_PACK","SCRIPT_BLOCK"},
+})
+
 AddIvar("difficulty",{
   save=IvarProc.CATEGORY_EXTERNAL,
   default=1,
@@ -689,6 +758,7 @@ this.langStrings={
     [this.ivarNames.enable]="Sahelanthropus enable",
     [this.ivarNames.manualOnly]="Sahelanthropus manual spawn only",
     [this.ivarNames.difficulty]="Sahelanthropus difficulty",
+    [this.ivarNames.loadMode]="Sahelanthropus load mode",
     [this.ivarNames.lifeScale]="Sahelanthropus health %",
     [this.ivarNames.marker]="Sahelanthropus map marker",
     [this.ivarNames.messages]="Sahelanthropus on-screen messages",
@@ -699,6 +769,7 @@ this.langStrings={
     eng={
       [this.ivarNames.enable]="Adds Sahelanthropus to IH boss events. Test build 1: Afghanistan free roam only, appears at Episode 31's battlefield.",
       [this.ivarNames.manualOnly]="On: Sahelanthropus only appears through 'Start boss event now' (or the pilot driver), never from the automatic boss-event countdown.",
+      [this.ivarNames.loadMode]="MISSION_PACK (recommended): loads with free roam, reloads safely; changes need a mission reload. SCRIPT_BLOCK: old IH boss-event block, hangs the next loading screen after death, reload or despawn.",
       [this.ivarNames.difficulty]="NORMAL = Episode 31 values, EXTREME = Episode 50 values (stage type 2 + combat grade).",
       [this.ivarNames.lifeScale]="Scales Sahelanthropus' total and per-part health.",
     },

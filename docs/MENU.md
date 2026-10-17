@@ -6,14 +6,15 @@ the safe-space menu (ACC; there only the settings matter).
 
 ## First time only
 1. **Set up boss events (once)**: turns on IH free-roam boss events, the Sahelanthropus boss type and manual-only
-   spawning (it never appears on its own).
-2. Reload the mission once (restart free roam). IH only creates the boss-event save data when a mission starts.
+   spawning (it never attacks on its own).
+2. Reload the mission once (restart free roam). Sahelanthropus' packs load with the mission from then on.
 
 ## Commands
 | Item | What it does |
 |---|---|
-| Spawn Sahelanthropus | Starts the boss event: the pack loads and the mech appears (Afghanistan: Episode 31 battlefield, Africa: Nova Braga Airport). Settings and the spawn point are applied a moment later. |
-| Despawn Sahelanthropus | Ends the boss event and removes the mech. See the warning below. |
+| Spawn Sahelanthropus | Wakes the mech up. It loads with free roam and waits parked at its spawn point (Afghanistan: Episode 31 battlefield, Africa: Nova Braga Airport). Settings and the spawn point are applied a moment later. |
+| Despawn (stop) Sahelanthropus | Stops the mech and parks it where it stands until the next mission load. |
+| Respawn Sahelanthropus | Stop, then wake it again a few seconds later (fresh health and settings). |
 | Teleport me to Sahelanthropus | Puts Snake 8 m from the mech, facing it. |
 | Summon Sahelanthropus to me (jump) | One native jump to about 35 m in front of you. Experimental. |
 | Send Sahelanthropus to map marker (jump) | One native jump to your latest map marker. Experimental. |
@@ -38,10 +39,14 @@ The Sahelanthropus boss menu (IH > Boss event menu > Sahelanthropus menu) keeps 
 The menu doesn't steer. After **Spawn**, start the pilot driver (`python sally_pilot.py`) and use the keys in
 [CONTROLS.md](CONTROLS.md). You can stop and restart the driver at any time; the mech stays.
 
-## Warning: reload hang
-Until the block-unload bug is fixed (see [HOW_IT_WORKS.md](HOW_IT_WORKS.md) section 9), **dying, reloading a
-checkpoint, changing mission or using Despawn while Sahelanthropus is loaded can freeze the next loading screen.**
-Save before you play. When you are done, quit the game instead of reloading.
+## Load mode
+IH > Boss event menu > Sahelanthropus menu > *Sahelanthropus load mode*:
+- **MISSION_PACK** (default): the mech's packs load with free roam, so dying and reloading a checkpoint work
+  normally (changing mission: not tested yet). It costs some memory in every Afghanistan/Africa free roam while
+  ControlSally is enabled.
+- **SCRIPT_BLOCK**: the old IH boss-event block. Don't use it: the block never unloads and the next loading screen
+  hangs.
+Changing the load mode or turning Sahelanthropus off takes effect at the next mission load.
 
 ## How the menu works
 `lua/mod/modules/InfControlSally.lua` is an ordinary IH external module: IH loads every file in `mod\modules`. It

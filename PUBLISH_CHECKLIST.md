@@ -29,7 +29,8 @@ Maintainer notes. Nothing here is automatic: each push or upload is a manual ste
 - [ ] Screenshots / video: the mech walking, firing, rainbow eyes.
 
 ## Known blockers for 1.0
-- **Reload hang:** `TppSahelan2_block` never empties (HOW_IT_WORKS section 9). Blocks Despawn/Respawn and any reload.
+- ~~Reload hang~~ fixed by MISSION_PACK load mode. Still to test: mission change (heli to ACC, other map) and memory
+  headroom with other heavy mods.
 - Soldier damage (same-army check, probe10e).
 - Flamethrower close-range aim toward Snake.
 - Optional: buddy-menu control (research in progress).

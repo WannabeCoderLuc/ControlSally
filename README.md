@@ -49,8 +49,8 @@ Full write-up (architecture, why it was hard, how each part was solved): [docs/H
 - `driver\sally_pilot.py` reads the keyboard and talks to the DLL through IHHook's named pipe.
 
 ## Known issues
-- **Reload hang:** dying, reloading a checkpoint, changing mission or despawning while Sahelanthropus is loaded can
-  freeze the next loading screen. Save first; quit the game instead of reloading.
+- While ControlSally is enabled, Sahelanthropus loads with Afghanistan/Africa free roam and waits parked at its spawn
+  point until you spawn it (this is what keeps reloads safe, see HOW_IT_WORKS section 9).
 - Weapons don't damage soldiers yet: the game treats the mech as the soldiers' ally (its hits are dropped as
   friendly fire). Vehicles and props break. Being worked on.
 - At close range the flamethrower can still turn toward Snake.

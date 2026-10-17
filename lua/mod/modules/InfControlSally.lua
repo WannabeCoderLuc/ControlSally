@@ -215,6 +215,10 @@ function this.Spawn()
     Say("run 'Set up boss events' first, then reload the mission")
     return
   end
+  if B.PackMode and B.PackMode() and not B.missionPackSub then
+    Say("Sahelanthropus isn't loaded in this mission: reload the mission once (it loads with free roam)")
+    return
+  end
   this.pendingPlace=SpawnPointTarget()
   B.StartEventNow()
   Say("Sahelanthropus requested")
@@ -225,10 +229,18 @@ function this.Despawn()
   this.pendingPlace=nil
   DllCall("ClearPilotGoal")
   DllCall("SetGate",0)
-  if InfBossEvent and InfBossEvent.EndEvent then
-    InfBossEvent.EndEvent()
+  local B=Boss()
+  if B and B.PackMode and B.PackMode() then
+    --mission-pack mode: the mech can't be unloaded mid-mission (it loads with the mission); stop and park it
+    B.EndEvent()
+    B.ClearBossSubType()
+    Say("Sahelanthropus stopped (it stays parked until the next mission load)")
+  else
+    if InfBossEvent and InfBossEvent.EndEvent then
+      InfBossEvent.EndEvent()
+    end
+    Say("Sahelanthropus removed")
   end
-  Say("Sahelanthropus removed")
   InfMenu.MenuOff()
 end
 
@@ -356,7 +368,7 @@ this.controlSallyMenu={
   options={
     "InfControlSally.Spawn",
     "InfControlSally.Despawn",
-    --"InfControlSally.Respawn",--off until the TppSahelan2_block reload hang is fixed (unload never empties)
+    "InfControlSally.Respawn",
     "InfControlSally.TeleportToMech",
     "InfControlSally.SummonToMe",
     "InfControlSally.SendToMarker",
@@ -413,7 +425,7 @@ this.langStrings={
   eng={
     controlSallyMenu="ControlSally",
     spawn="Spawn Sahelanthropus",
-    despawn="Despawn Sahelanthropus",
+    despawn="Despawn (stop) Sahelanthropus",
     respawn="Respawn Sahelanthropus",
     teleportToMech="Teleport me to Sahelanthropus",
     summonToMe="Summon Sahelanthropus to me (jump)",
@@ -431,9 +443,9 @@ this.langStrings={
   },
   help={
     eng={
-      spawn="Brings Sahelanthropus in through the boss event (Afghanistan or Africa free roam). Then start the pilot driver to steer it. KNOWN BUG: dying or reloading while it is loaded can hang the loading screen.",
-      despawn="Ends the boss event and removes Sahelanthropus. KNOWN BUG: after this (or after dying, or any mission reload while it is loaded) the next loading screen can hang; save first and restart the game afterwards.",
-      respawn="Despawn, then spawn again a few seconds later.",
+      spawn="Wakes Sahelanthropus up (Afghanistan or Africa free roam). It loads with the mission and waits parked at its spawn point until then. Start the pilot driver to steer it.",
+      despawn="Stops Sahelanthropus and hands it back to nobody: it stays parked where it is until the next mission load. Spawn or Respawn wakes it again.",
+      respawn="Stop, then wake it again a few seconds later (fresh health and settings).",
       summonToMe="One native jump to a point in front of you. Experimental: very long jumps may fail.",
       sendToMarker="One native jump to your latest map marker. Experimental.",
       releaseToAi="Hands control back to its own AI (the pilot driver takes it again when you steer).",

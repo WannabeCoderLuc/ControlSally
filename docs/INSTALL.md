@@ -37,5 +37,5 @@ Game: MGSV:TPP **1.0.15.4, Steam, English exe**. Offline single player only. Bac
 | Mech stands still and the driver prints `waiting for mech AI root` | Wait a few seconds after it spawns. If it persists, check `plugins\SahelanControl.log` for `INTRO-SKIP`. |
 | `SahelanControl info` doesn't show the expected version | An older or other `SahelanControl.dll` is installed. Replace it. |
 | Game crashes at start | Wrong game version or language. Remove the DLL. |
-| Loading screen never ends after dying or reloading | Known bug (Sahelanthropus block never unloads). Kill the game, load your save. |
+| Loading screen never ends after dying or reloading | IH > Boss event menu > Sahelanthropus menu > *load mode* must be MISSION_PACK (default). SCRIPT_BLOCK has this bug. |
 | No ControlSally page in the IH menu | `InfControlSally.lua` missing from `mod\modules` (reinstall the `.mgsv`). |
